@@ -1,4 +1,4 @@
-// Copyright 2018-2023, Collabora, Ltd.
+// Copyright 2018-2024, Collabora, Ltd.
 // Copyright 2023, NVIDIA CORPORATION.
 // SPDX-License-Identifier: BSL-1.0
 /*!
@@ -121,6 +121,7 @@ struct oxr_interaction_profile;
 struct oxr_action_set_ref;
 struct oxr_action_ref;
 struct oxr_hand_tracker;
+struct oxr_facial_tracker_htc;
 
 #define XRT_MAX_HANDLE_CHILDREN 256
 #define OXR_MAX_BINDINGS_PER_ACTION 32
@@ -382,6 +383,18 @@ oxr_action_to_openxr(struct oxr_action *act)
 	return XRT_CAST_PTR_TO_OXR_HANDLE(XrAction, act);
 }
 
+#ifdef OXR_HAVE_HTC_facial_tracking
+/*!
+ * To go back to a OpenXR object.
+ *
+ * @relates oxr_facial_tracker_htc
+ */
+static inline XrFacialTrackerHTC
+oxr_facial_tracker_htc_to_openxr(struct oxr_facial_tracker_htc *face_tracker_htc)
+{
+	return XRT_CAST_PTR_TO_OXR_HANDLE(XrFacialTrackerHTC, face_tracker_htc);
+}
+#endif
 
 /*!
  *
@@ -952,6 +965,12 @@ oxr_system_get_eye_gaze_support(struct oxr_logger *log, struct oxr_instance *ins
 bool
 oxr_system_get_force_feedback_support(struct oxr_logger *log, struct oxr_instance *inst);
 
+void
+oxr_system_get_face_tracking_htc_support(struct oxr_logger *log,
+                                         struct oxr_instance *inst,
+                                         bool *supports_eye,
+                                         bool *supports_lip);
+
 
 /*
  *
@@ -1385,6 +1404,7 @@ struct oxr_system
 // clang-format off
 static inline struct xrt_device *get_role_head(struct oxr_system *sys) {return sys->xsysd->static_roles.head; }
 static inline struct xrt_device *get_role_eyes(struct oxr_system *sys) {return sys->xsysd->static_roles.eyes; }
+static inline struct xrt_device *get_role_face(struct oxr_system* sys) { return sys->xsysd->static_roles.face; }
 static inline struct xrt_device *get_role_hand_tracking_left(struct oxr_system* sys) { return sys->xsysd->static_roles.hand_tracking.left; }
 static inline struct xrt_device *get_role_hand_tracking_right(struct oxr_system* sys) { return sys->xsysd->static_roles.hand_tracking.right; }
 // clang-format on
@@ -1417,6 +1437,11 @@ get_role_profile_head(struct oxr_system *sys)
 }
 static inline enum xrt_device_name
 get_role_profile_eyes(struct oxr_system *sys)
+{
+	return XRT_DEVICE_INVALID;
+}
+static inline enum xrt_device_name
+get_role_profile_face(struct oxr_system *sys)
 {
 	return XRT_DEVICE_INVALID;
 }
@@ -2540,6 +2565,30 @@ oxr_event_push_XrEventDataPassthroughStateChangedFB(struct oxr_logger *log,
                                                     XrPassthroughStateChangedFlagsFB flags);
 
 #endif // OXR_HAVE_FB_passthrough
+
+/*!
+ * HTC specific Facial tracker.
+ *
+ * Parent type/handle is @ref oxr_instance
+ *
+ *
+ * @obj{XrFacialTrackerHTC}
+ * @extends oxr_handle_base
+ */
+struct oxr_facial_tracker_htc
+{
+	//! Common structure for things referred to by OpenXR handles.
+	struct oxr_handle_base handle;
+
+	//! Owner of this face tracker.
+	struct oxr_session *sess;
+
+	//! xrt_device backing this face tracker
+	struct xrt_device *xdev;
+
+	//! Type of facial tracking, eyes or lips
+	enum xrt_facial_tracking_type_htc facial_tracking_type;
+};
 
 /*!
  * @}

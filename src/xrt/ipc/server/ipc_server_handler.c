@@ -1,4 +1,4 @@
-// Copyright 2020-2023, Collabora, Ltd.
+// Copyright 2020-2024, Collabora, Ltd.
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
@@ -200,6 +200,9 @@ ipc_handle_instance_describe_client(volatile struct ipc_client_state *ics,
 	EXT(ext_hand_tracking_enabled);
 	EXT(ext_eye_gaze_interaction_enabled);
 	EXT(ext_hand_interaction_enabled);
+#ifdef OXR_HAVE_HTC_facial_tracking
+	EXT(htc_facial_tracking_enabled);
+#endif
 
 #undef EXT
 #undef PTT
@@ -291,6 +294,7 @@ ipc_handle_session_begin(volatile struct ipc_client_state *ics)
 	    .ext_hand_tracking_enabled = ics->client_state.info.ext_hand_tracking_enabled,
 	    .ext_eye_gaze_interaction_enabled = ics->client_state.info.ext_eye_gaze_interaction_enabled,
 	    .ext_hand_interaction_enabled = ics->client_state.info.ext_hand_interaction_enabled,
+	    .htc_facial_tracking_enabled = ics->client_state.info.htc_facial_tracking_enabled,
 	};
 
 	return xrt_comp_begin_session(ics->xc, &begin_session_info);
@@ -1859,4 +1863,16 @@ xrt_result_t
 ipc_handle_system_devices_get_roles(volatile struct ipc_client_state *ics, struct xrt_system_roles *out_roles)
 {
 	return xrt_system_devices_get_roles(ics->server->xsysd, out_roles);
+}
+
+xrt_result_t
+ipc_handle_device_get_face_tracking(volatile struct ipc_client_state *ics,
+                                    uint32_t id,
+                                    enum xrt_input_name facial_expression_type,
+                                    struct xrt_facial_expression_set *out_value)
+{
+	const uint32_t device_id = id;
+	struct xrt_device *xdev = get_xdev(ics, device_id);
+	// Get facial expression data.
+	return xrt_device_get_face_tracking(xdev, facial_expression_type, out_value);
 }
