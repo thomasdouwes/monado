@@ -894,11 +894,19 @@ public:
 		         m_pose.vecPosition[1], m_pose.vecPosition[2]);
 #endif
 		vr::HmdQuaternion_t identityquat{1, 0, 0, 0};
+		vr::HmdQuaternion_t oculusOffsetQ{0.9238795, 0.3826834, 0, 0};
+		if(m_xdev->name == XRT_DEVICE_TOUCH_CONTROLLER)
+		{
+			m_pose.qDriverFromHeadRotation = oculusOffsetQ;
+		}
+		else
+		{
+			m_pose.qDriverFromHeadRotation = identityquat;
+		}
 		m_pose.qWorldFromDriverRotation = identityquat;
-		m_pose.qDriverFromHeadRotation = identityquat;
-		m_pose.vecDriverFromHeadTranslation[0] = 0.f;
-		m_pose.vecDriverFromHeadTranslation[1] = 0.f;
-		m_pose.vecDriverFromHeadTranslation[2] = 0.f;
+		m_pose.vecDriverFromHeadTranslation[0] = -0.01f;
+		m_pose.vecDriverFromHeadTranslation[1] = 0.04f;
+		m_pose.vecDriverFromHeadTranslation[2] = 0.015f;
 
 		return m_pose;
 	}
